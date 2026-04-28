@@ -12,6 +12,7 @@ import {
   FlaskConical,
   MessageSquare,
   CreditCard,
+  BarChart3,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/auth-store'
@@ -70,6 +71,11 @@ export function useSidebarData(): SidebarData {
             title: t('Usage Logs'),
             icon: FileText,
             items: getUsageLogsSectionNavItems(t),
+          },
+          {
+            title: t('Token Statistics'),
+            url: '/token-stats',
+            icon: BarChart3,
           },
           {
             title: t('Wallet'),

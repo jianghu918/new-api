@@ -509,6 +509,57 @@ func SumUsedToken(logType int, startTimestamp int64, endTimestamp int64, modelNa
 	return token
 }
 
+type TokenStat struct {
+	Username         string `json:"username"`
+	PromptTokens     int64  `json:"prompt_tokens"`
+	CompletionTokens int64  `json:"completion_tokens"`
+	TotalTokens      int64  `json:"total_tokens"`
+}
+
+func GetTokenStats(startTimestamp int64, endTimestamp int64, modelName string, username string, tokenName string, channel int, group string) ([]TokenStat, error) {
+	var results []TokenStat
+
+	tx := LOG_DB.Table("logs").Select("username, sum(prompt_tokens) as prompt_tokens, sum(completion_tokens) as completion_tokens, sum(prompt_tokens) + sum(completion_tokens) as total_tokens")
+
+	if username != "" {
+		tx = tx.Where("username = ?", username)
+	}
+	if tokenName != "" {
+		tx = tx.Where("token_name = ?", tokenName)
+	}
+	if startTimestamp != 0 {
+		tx = tx.Where("created_at >= ?", startTimestamp)
+	}
+	if endTimestamp != 0 {
+		tx = tx.Where("created_at <= ?", endTimestamp)
+	}
+	if modelName != "" {
+		modelNamePattern, err := sanitizeLikePattern(modelName)
+		if err != nil {
+			return nil, err
+		}
+		tx = tx.Where("model_name LIKE ? ESCAPE '!'", modelNamePattern)
+	}
+	if channel != 0 {
+		tx = tx.Where("channel_id = ?", channel)
+	}
+	if group != "" {
+		tx = tx.Where(logGroupCol+" = ?", group)
+	}
+
+	err := tx.Where("type = ?", LogTypeConsume).
+		Group("username").
+		Order("total_tokens desc").
+		Scan(&results).Error
+
+	if err != nil {
+		common.SysError("failed to query token stats: " + err.Error())
+		return nil, errors.New("查询Token统计数据失败")
+	}
+
+	return results, nil
+}
+
 func DeleteOldLog(ctx context.Context, targetTimestamp int64, limit int) (int64, error) {
 	var total int64 = 0
 

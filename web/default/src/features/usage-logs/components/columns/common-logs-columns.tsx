@@ -748,7 +748,7 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
 
     {
       accessorKey: 'content',
-      header: t('Details'),
+      header: t('Content'),
       cell: function DetailsCell({ row }) {
         const [dialogOpen, setDialogOpen] = useState(false)
         const log = row.original
@@ -758,6 +758,10 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
         const primary = segments[0]
         const hasMore = segments.length > 1
 
+        // For consumption logs (type 2), show content as primary display
+        const isConsumeLog = log.type === 2
+        const showContent = isConsumeLog && log.content
+
         return (
           <>
             <button
@@ -766,7 +770,11 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
               onClick={() => setDialogOpen(true)}
               title={t('Click to view full details')}
             >
-              {primary ? (
+              {showContent ? (
+                <span className='text-muted-foreground truncate group-hover:underline'>
+                  {log.content}
+                </span>
+              ) : primary ? (
                 <span
                   className={cn(
                     'truncate leading-snug group-hover:underline',
@@ -801,9 +809,9 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
           </>
         )
       },
-      meta: { label: t('Details'), mobileHidden: true },
-      size: 180,
-      maxSize: 200,
+      meta: { label: t('Content'), mobileHidden: true },
+      size: 200,
+      maxSize: 250,
     }
   )
 
