@@ -6,6 +6,8 @@ import type {
   QuotaDataItem,
   ProcessedChartData,
   ProcessedUserChartData,
+  ProcessedTokenChartData,
+  TokenStatItem,
 } from '@/features/dashboard/types'
 
 type TFunction = (key: string) => string
@@ -630,6 +632,170 @@ export function processChartData(
     },
     totalQuotaDisplay: formatQuotaTotal(totalQuotaRaw),
     totalCountDisplay: formatInt(totalTimes),
+  }
+}
+
+/**
+ * Process token stats data for stacked bar chart
+ */
+export function processTokenChartData(
+  data: TokenStatItem[],
+  t?: TFunction,
+  limit = 10
+): ProcessedTokenChartData {
+  const tt: TFunction = t ?? ((x) => x)
+
+  // Format tokens to K (thousands)
+  const formatTokensK = (value: number) => {
+    const k = value / 1000
+    return k.toFixed(1) + 'k'
+  }
+
+  const emptyResult: ProcessedTokenChartData = {
+    spec_token_stacked: {
+      type: 'bar',
+      data: [{ id: 'tokenStacked', values: [] }],
+      xField: 'User',
+      yField: 'tokens',
+      seriesField: 'Type',
+      stack: true,
+      title: {
+        visible: true,
+        text: tt('Token Consumption Ranking'),
+        subtext: tt('No data available'),
+      },
+      legends: { visible: true, selectMode: 'single' },
+      background: { fill: 'transparent' },
+    },
+  }
+
+  if (!data || data.length === 0) return emptyResult
+
+  // Sort by total_tokens and take top users
+  const sorted = [...data].sort((a, b) => b.total_tokens - a.total_tokens)
+  const topUsers = sorted.slice(0, limit)
+
+  // Prepare stacked data: each user has two rows (Input, Output)
+  const stackedValues: Array<{
+    User: string
+    Type: string
+    tokens: number
+  }> = []
+
+  topUsers.forEach((item) => {
+    stackedValues.push({
+      User: item.username,
+      Type: tt('Input'),
+      tokens: item.prompt_tokens,
+    })
+    stackedValues.push({
+      User: item.username,
+      Type: tt('Output'),
+      tokens: item.completion_tokens,
+    })
+  })
+
+  // Calculate totals
+  const totalInput = topUsers.reduce((s, item) => s + item.prompt_tokens, 0)
+  const totalOutput = topUsers.reduce((s, item) => s + item.completion_tokens, 0)
+  const totalTokens = totalInput + totalOutput
+
+  // Color mapping for Input/Output
+  const typeColorMap = {
+    [tt('Input')]: '#5B8FF9', // Blue
+    [tt('Output')]: '#5AD8A6', // Green
+  }
+
+  return {
+    spec_token_stacked: {
+      type: 'bar',
+      data: [{ id: 'tokenStacked', values: stackedValues }],
+      xField: 'User',
+      yField: 'tokens',
+      seriesField: 'Type',
+      stack: true,
+      title: {
+        visible: true,
+        text: tt('Token Consumption Ranking'),
+        subtext: `${tt('Total:')} ${formatTokensK(totalTokens)} (${tt('Input')}: ${formatTokensK(totalInput)}, ${tt('Output')}: ${formatTokensK(totalOutput)})`,
+      },
+      legends: {
+        visible: true,
+        selectMode: 'single',
+        position: 'top',
+      },
+      bar: {
+        state: { hover: { stroke: '#000', lineWidth: 1 } },
+      },
+      label: {
+        visible: true,
+        position: 'inside',
+        formatMethod: (value: number) => {
+          if (value < 1000) return ''
+          return formatTokensK(value)
+        },
+        style: { fontSize: 10, fill: '#fff' },
+      },
+      axes: [
+        {
+          orient: 'bottom',
+          type: 'band',
+          label: { autoRotate: true, autoHide: true },
+        },
+        {
+          orient: 'left',
+          type: 'linear',
+          label: {
+            formatMethod: (value: number) => formatTokensK(value),
+          },
+          title: {
+            visible: true,
+            text: tt('Tokens (k)'),
+          },
+        },
+      ],
+      tooltip: {
+        mark: {
+          content: [
+            {
+              key: (datum: Record<string, unknown>) => `${datum?.User} - ${datum?.Type}`,
+              value: (datum: Record<string, unknown>) =>
+                formatTokensK(Number(datum?.tokens) || 0),
+            },
+          ],
+        },
+        dimension: {
+          content: [
+            {
+              key: (datum: Record<string, unknown>) => datum?.Type,
+              value: (datum: Record<string, unknown>) =>
+                Number(datum?.tokens) || 0,
+            },
+          ],
+          updateContent: (
+            array: Array<{
+              key: string
+              value: string | number
+            }>
+          ) => {
+            let sum = 0
+            for (let i = 0; i < array.length; i++) {
+              const v = Number(array[i].value) || 0
+              sum += v
+              array[i].value = formatTokensK(v)
+            }
+            array.unshift({
+              key: tt('Total:'),
+              value: formatTokensK(sum),
+            })
+            return array
+          },
+        },
+      },
+      color: { specified: typeColorMap },
+      background: { fill: 'transparent' },
+      animation: true,
+    },
   }
 }
 

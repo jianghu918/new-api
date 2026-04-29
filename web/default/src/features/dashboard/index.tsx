@@ -47,6 +47,12 @@ const LazyUserCharts = lazy(() =>
   }))
 )
 
+const LazyTokenCharts = lazy(() =>
+  import('./components/users/token-charts').then((m) => ({
+    default: m.TokenCharts,
+  }))
+)
+
 function LogStatCardsFallback() {
   return (
     <div className='overflow-hidden rounded-lg border'>
@@ -193,11 +199,18 @@ export function Dashboard() {
             </>
           )}
           {activeSection === 'users' && (
-            <FadeIn>
-              <Suspense fallback={<ModelChartsFallback />}>
-                <LazyUserCharts />
-              </Suspense>
-            </FadeIn>
+            <>
+              <FadeIn>
+                <Suspense fallback={<ModelChartsFallback />}>
+                  <LazyUserCharts />
+                </Suspense>
+              </FadeIn>
+              <FadeIn delay={0.1}>
+                <Suspense fallback={<ModelChartsFallback />}>
+                  <LazyTokenCharts />
+                </Suspense>
+              </FadeIn>
+            </>
           )}
         </div>
       </SectionPageLayout.Content>

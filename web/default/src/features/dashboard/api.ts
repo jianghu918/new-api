@@ -1,5 +1,5 @@
 import { api } from '@/lib/api'
-import type { QuotaDataItem, UptimeGroupResult } from './types'
+import type { QuotaDataItem, TokenStatItem, UptimeGroupResult } from './types'
 
 // ============================================================================
 // Dashboard APIs
@@ -38,6 +38,23 @@ export async function getUserQuotaDataByUsers(params: {
 }) {
   const res = await api.get<{ success: boolean; data: QuotaDataItem[] }>(
     '/api/data/users',
+    { params }
+  )
+  return res.data
+}
+
+// Get token consumption stats by user
+export async function getTokenStats(params: {
+  start_timestamp?: number
+  end_timestamp?: number
+  username?: string
+  model_name?: string
+  token_name?: string
+  channel?: number
+  group?: string
+}) {
+  const res = await api.get<{ success: boolean; data: TokenStatItem[] }>(
+    '/api/log/token_stats',
     { params }
   )
   return res.data

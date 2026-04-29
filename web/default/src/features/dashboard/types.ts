@@ -15,6 +15,13 @@ export interface QuotaDataItem {
   quota?: number
 }
 
+export interface TokenStatItem {
+  username: string
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
+}
+
 // ============================================================================
 // Uptime Monitoring Types
 // ============================================================================
@@ -81,6 +88,10 @@ export interface ProcessedChartData {
 export interface ProcessedUserChartData {
   spec_user_rank: VChartSpec
   spec_user_trend: VChartSpec
+}
+
+export interface ProcessedTokenChartData {
+  spec_token_stacked: VChartSpec
 }
 
 // ============================================================================
