@@ -57,7 +57,7 @@ docker run -d \
   -e REDIS_CONN_STRING="redis://host.docker.internal:6379" \
   -e TZ=Asia/Shanghai \
   -e BATCH_UPDATE_ENABLED=true \
-  -v ~/Documents/Work/happyLife/new-api/data:/data \
+  -v ~/Documents/Work/happyLife/new-api/dev_data:/data \
   "${IMAGE_NAME}"
 
 echo ""
