@@ -23,6 +23,7 @@ cd /Users/jianghu/Documents/Work/happyLife/new-api
 # 1. 前端构建
 echo "📦 [1/4] 前端构建..."
 cd web/default
+bun install --registry=https://registry.npmmirror.com
 bun run build
 cd ../..
 echo "✅ 前端构建完成"
@@ -50,13 +51,13 @@ fi
 
 docker run -d \
   --name new-api \
-  --restart always \
+  --restart no \
   -p 30000:3000 \
   -e SQL_DSN="postgresql://postgres:123456@host.docker.internal:5432/new-api" \
   -e REDIS_CONN_STRING="redis://host.docker.internal:6379" \
   -e TZ=Asia/Shanghai \
   -e BATCH_UPDATE_ENABLED=true \
-  -v /Users/jianghu/Documents/Work/happyLife/new-api/data:/data \
+  -v ~/Documents/Work/happyLife/new-api/data:/data \
   "${IMAGE_NAME}"
 
 echo ""
