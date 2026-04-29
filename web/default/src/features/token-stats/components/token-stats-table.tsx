@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -13,10 +13,31 @@ import {
 } from '@/components/ui/table'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { CompactDateTimeRangePicker } from '@/features/usage-logs/components/compact-date-time-range-picker'
-import { getDefaultTimeRange } from '@/features/usage-logs/lib/utils'
 import { getTokenStats } from '../api'
 import type { TokenStat } from '../types'
+
+function formatDateForInput(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function parseDateFromInput(dateStr: string): Date | undefined {
+  if (!dateStr) return undefined
+  const parts = dateStr.split('-')
+  if (parts.length !== 3) return undefined
+  return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]))
+}
+
+function getDefaultDateRange(): { startDate: string; endDate: string } {
+  const now = new Date()
+  const start = new Date(now.getFullYear(), now.getMonth(), 1)
+  return {
+    startDate: formatDateForInput(start),
+    endDate: formatDateForInput(now),
+  }
+}
 
 function formatTokensInM(tokens: number): string {
   if (tokens === 0) return '0'
@@ -31,26 +52,29 @@ export function TokenStatsTable() {
   const { t } = useTranslation()
   const isAdmin = useIsAdmin()
 
-  const [filters, setFilters] = useState<{
-    startTime: Date | undefined
-    endTime: Date | undefined
-    username: string
-  }>(() => {
-    const { start, end } = getDefaultTimeRange()
-    return { startTime: start, endTime: end, username: '' }
+  const [filters, setFilters] = useState(() => {
+    const { startDate, endDate } = getDefaultDateRange()
+    return { startDate, endDate, username: '' }
   })
 
+  const [searchParams, setSearchParams] = useState<{
+    startDate: string
+    endDate: string
+    username: string
+  } | null>(null)
+
   const { data, isLoading, isFetching, refetch } = useQuery({
-    queryKey: ['token-stats', filters],
+    queryKey: ['token-stats', searchParams],
     queryFn: async () => {
+      if (!searchParams) return []
+      
+      const startDate = parseDateFromInput(searchParams.startDate)
+      const endDate = searchParams.endDate ? parseDateFromInput(searchParams.endDate) : undefined
+      
       const result = await getTokenStats({
-        start_timestamp: filters.startTime
-          ? Math.floor(filters.startTime.getTime() / 1000)
-          : undefined,
-        end_timestamp: filters.endTime
-          ? Math.floor(filters.endTime.getTime() / 1000)
-          : undefined,
-        username: filters.username || undefined,
+        start_timestamp: startDate ? Math.floor(startDate.getTime() / 1000) : undefined,
+        end_timestamp: endDate ? Math.floor(endDate.getTime() / 1000) + 86399 : undefined,
+        username: searchParams.username || undefined,
       })
 
       if (!result?.success) {
@@ -60,7 +84,12 @@ export function TokenStatsTable() {
 
       return result.data || []
     },
+    enabled: !!searchParams,
   })
+
+  const handleSearch = () => {
+    setSearchParams(filters)
+  }
 
   const stats: TokenStat[] = data || []
 
@@ -77,33 +106,42 @@ export function TokenStatsTable() {
       {/* Filter Bar */}
       <div className='rounded-md border bg-card/50 p-3 shadow-xs'>
         <div className='flex flex-wrap items-center gap-3'>
-          <CompactDateTimeRangePicker
-            startTime={filters.startTime}
-            endTime={filters.endTime}
-            onStartTimeChange={(date) =>
-              setFilters((f) => ({ ...f, startTime: date }))
-            }
-            onEndTimeChange={(date) =>
-              setFilters((f) => ({ ...f, endTime: date }))
-            }
-          />
-          {isAdmin && (
+          <div className='flex items-center gap-2'>
+            <label className='text-sm text-muted-foreground'>{t('Start Date')}:</label>
             <Input
-              placeholder={t('Filter by username')}
-              value={filters.username}
-              onChange={(e) =>
-                setFilters((f) => ({ ...f, username: e.target.value }))
-              }
-              className='w-40'
+              type='date'
+              value={filters.startDate}
+              onChange={(e) => setFilters((f) => ({ ...f, startDate: e.target.value }))}
+              className='w-36'
             />
+          </div>
+          <div className='flex items-center gap-2'>
+            <label className='text-sm text-muted-foreground'>{t('End Date')}:</label>
+            <Input
+              type='date'
+              value={filters.endDate}
+              onChange={(e) => setFilters((f) => ({ ...f, endDate: e.target.value }))}
+              className='w-36'
+            />
+          </div>
+          {isAdmin && (
+            <div className='flex items-center gap-2'>
+              <label className='text-sm text-muted-foreground'>{t('User')}:</label>
+              <Input
+                placeholder={t('Username')}
+                value={filters.username}
+                onChange={(e) => setFilters((f) => ({ ...f, username: e.target.value }))}
+                className='w-32'
+              />
+            </div>
           )}
           <Button
-            variant='outline'
+            variant='default'
             size='sm'
-            onClick={() => refetch()}
+            onClick={handleSearch}
             disabled={isFetching}
           >
-            {t('Refresh')}
+            {t('Query')}
           </Button>
         </div>
       </div>

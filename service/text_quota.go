@@ -382,7 +382,12 @@ func PostTextConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, us
 		extraContent = append(extraContent, fmt.Sprintf("模型 %s", summary.ModelName))
 	}
 
+	// Extract user prompt from messages for logging
+	userPrompt := extractUserPrompt(relayInfo.Request)
 	logContent := strings.Join(extraContent, ", ")
+	if userPrompt != "" {
+		logContent = userPrompt
+	}
 	var other map[string]interface{}
 	if summary.IsClaudeUsageSemantic {
 		other = GenerateClaudeOtherInfo(ctx, relayInfo,

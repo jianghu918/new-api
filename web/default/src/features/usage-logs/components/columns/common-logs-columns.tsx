@@ -759,8 +759,9 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
         const hasMore = segments.length > 1
 
         // For consumption logs (type 2), show content as primary display
+        // Only show user prompt content for admin users
         const isConsumeLog = log.type === 2
-        const showContent = isConsumeLog && log.content
+        const showContent = isAdmin && isConsumeLog && log.content
 
         return (
           <>

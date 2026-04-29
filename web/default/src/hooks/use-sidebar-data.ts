@@ -13,6 +13,7 @@ import {
   MessageSquare,
   CreditCard,
   BarChart3,
+  Settings,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/auth-store'
@@ -117,6 +118,11 @@ export function useSidebarData(): SidebarData {
             title: t('Subscription Management'),
             url: '/subscriptions',
             icon: CreditCard,
+          },
+          {
+            title: t('System Settings'),
+            url: '/system-settings/general/system-info',
+            icon: Settings,
           },
         ],
       },

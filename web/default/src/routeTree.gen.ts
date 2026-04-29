@@ -35,6 +35,7 @@ import { Route as PricingModelIdIndexRouteImport } from './routes/pricing/$model
 import { Route as AuthenticatedWalletIndexRouteImport } from './routes/_authenticated/wallet/index'
 import { Route as AuthenticatedUsersIndexRouteImport } from './routes/_authenticated/users/index'
 import { Route as AuthenticatedUsageLogsIndexRouteImport } from './routes/_authenticated/usage-logs/index'
+import { Route as AuthenticatedTokenStatsIndexRouteImport } from './routes/_authenticated/token-stats/index'
 import { Route as AuthenticatedSystemSettingsIndexRouteImport } from './routes/_authenticated/system-settings/index'
 import { Route as AuthenticatedSubscriptionsIndexRouteImport } from './routes/_authenticated/subscriptions/index'
 import { Route as AuthenticatedRedemptionCodesIndexRouteImport } from './routes/_authenticated/redemption-codes/index'
@@ -45,6 +46,7 @@ import { Route as AuthenticatedKeysIndexRouteImport } from './routes/_authentica
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedChannelsIndexRouteImport } from './routes/_authenticated/channels/index'
 import { Route as AuthenticatedUsageLogsSectionRouteImport } from './routes/_authenticated/usage-logs/$section'
+import { Route as AuthenticatedTokenStatsSectionRouteImport } from './routes/_authenticated/token-stats/$section'
 import { Route as AuthenticatedModelsSectionRouteImport } from './routes/_authenticated/models/$section'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
 import { Route as AuthenticatedDashboardSectionRouteImport } from './routes/_authenticated/dashboard/$section'
@@ -196,6 +198,12 @@ const AuthenticatedUsageLogsIndexRoute =
     path: '/usage-logs/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTokenStatsIndexRoute =
+  AuthenticatedTokenStatsIndexRouteImport.update({
+    id: '/token-stats/',
+    path: '/token-stats/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSystemSettingsIndexRoute =
   AuthenticatedSystemSettingsIndexRouteImport.update({
     id: '/',
@@ -253,6 +261,12 @@ const AuthenticatedUsageLogsSectionRoute =
   AuthenticatedUsageLogsSectionRouteImport.update({
     id: '/usage-logs/$section',
     path: '/usage-logs/$section',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTokenStatsSectionRoute =
+  AuthenticatedTokenStatsSectionRouteImport.update({
+    id: '/token-stats/$section',
+    path: '/token-stats/$section',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedModelsSectionRoute =
@@ -394,6 +408,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/$section': typeof AuthenticatedDashboardSectionRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/models/$section': typeof AuthenticatedModelsSectionRoute
+  '/token-stats/$section': typeof AuthenticatedTokenStatsSectionRoute
   '/usage-logs/$section': typeof AuthenticatedUsageLogsSectionRoute
   '/channels/': typeof AuthenticatedChannelsIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -404,6 +419,7 @@ export interface FileRoutesByFullPath {
   '/redemption-codes/': typeof AuthenticatedRedemptionCodesIndexRoute
   '/subscriptions/': typeof AuthenticatedSubscriptionsIndexRoute
   '/system-settings/': typeof AuthenticatedSystemSettingsIndexRoute
+  '/token-stats/': typeof AuthenticatedTokenStatsIndexRoute
   '/usage-logs/': typeof AuthenticatedUsageLogsIndexRoute
   '/users/': typeof AuthenticatedUsersIndexRoute
   '/wallet/': typeof AuthenticatedWalletIndexRoute
@@ -448,6 +464,7 @@ export interface FileRoutesByTo {
   '/dashboard/$section': typeof AuthenticatedDashboardSectionRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/models/$section': typeof AuthenticatedModelsSectionRoute
+  '/token-stats/$section': typeof AuthenticatedTokenStatsSectionRoute
   '/usage-logs/$section': typeof AuthenticatedUsageLogsSectionRoute
   '/channels': typeof AuthenticatedChannelsIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
@@ -458,6 +475,7 @@ export interface FileRoutesByTo {
   '/redemption-codes': typeof AuthenticatedRedemptionCodesIndexRoute
   '/subscriptions': typeof AuthenticatedSubscriptionsIndexRoute
   '/system-settings': typeof AuthenticatedSystemSettingsIndexRoute
+  '/token-stats': typeof AuthenticatedTokenStatsIndexRoute
   '/usage-logs': typeof AuthenticatedUsageLogsIndexRoute
   '/users': typeof AuthenticatedUsersIndexRoute
   '/wallet': typeof AuthenticatedWalletIndexRoute
@@ -506,6 +524,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/$section': typeof AuthenticatedDashboardSectionRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
   '/_authenticated/models/$section': typeof AuthenticatedModelsSectionRoute
+  '/_authenticated/token-stats/$section': typeof AuthenticatedTokenStatsSectionRoute
   '/_authenticated/usage-logs/$section': typeof AuthenticatedUsageLogsSectionRoute
   '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -516,6 +535,7 @@ export interface FileRoutesById {
   '/_authenticated/redemption-codes/': typeof AuthenticatedRedemptionCodesIndexRoute
   '/_authenticated/subscriptions/': typeof AuthenticatedSubscriptionsIndexRoute
   '/_authenticated/system-settings/': typeof AuthenticatedSystemSettingsIndexRoute
+  '/_authenticated/token-stats/': typeof AuthenticatedTokenStatsIndexRoute
   '/_authenticated/usage-logs/': typeof AuthenticatedUsageLogsIndexRoute
   '/_authenticated/users/': typeof AuthenticatedUsersIndexRoute
   '/_authenticated/wallet/': typeof AuthenticatedWalletIndexRoute
@@ -563,6 +583,7 @@ export interface FileRouteTypes {
     | '/dashboard/$section'
     | '/errors/$error'
     | '/models/$section'
+    | '/token-stats/$section'
     | '/usage-logs/$section'
     | '/channels/'
     | '/dashboard/'
@@ -573,6 +594,7 @@ export interface FileRouteTypes {
     | '/redemption-codes/'
     | '/subscriptions/'
     | '/system-settings/'
+    | '/token-stats/'
     | '/usage-logs/'
     | '/users/'
     | '/wallet/'
@@ -617,6 +639,7 @@ export interface FileRouteTypes {
     | '/dashboard/$section'
     | '/errors/$error'
     | '/models/$section'
+    | '/token-stats/$section'
     | '/usage-logs/$section'
     | '/channels'
     | '/dashboard'
@@ -627,6 +650,7 @@ export interface FileRouteTypes {
     | '/redemption-codes'
     | '/subscriptions'
     | '/system-settings'
+    | '/token-stats'
     | '/usage-logs'
     | '/users'
     | '/wallet'
@@ -674,6 +698,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/$section'
     | '/_authenticated/errors/$error'
     | '/_authenticated/models/$section'
+    | '/_authenticated/token-stats/$section'
     | '/_authenticated/usage-logs/$section'
     | '/_authenticated/channels/'
     | '/_authenticated/dashboard/'
@@ -684,6 +709,7 @@ export interface FileRouteTypes {
     | '/_authenticated/redemption-codes/'
     | '/_authenticated/subscriptions/'
     | '/_authenticated/system-settings/'
+    | '/_authenticated/token-stats/'
     | '/_authenticated/usage-logs/'
     | '/_authenticated/users/'
     | '/_authenticated/wallet/'
@@ -906,6 +932,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUsageLogsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/token-stats/': {
+      id: '/_authenticated/token-stats/'
+      path: '/token-stats'
+      fullPath: '/token-stats/'
+      preLoaderRoute: typeof AuthenticatedTokenStatsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/system-settings/': {
       id: '/_authenticated/system-settings/'
       path: '/'
@@ -974,6 +1007,13 @@ declare module '@tanstack/react-router' {
       path: '/usage-logs/$section'
       fullPath: '/usage-logs/$section'
       preLoaderRoute: typeof AuthenticatedUsageLogsSectionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/token-stats/$section': {
+      id: '/_authenticated/token-stats/$section'
+      path: '/token-stats/$section'
+      fullPath: '/token-stats/$section'
+      preLoaderRoute: typeof AuthenticatedTokenStatsSectionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/models/$section': {
@@ -1200,6 +1240,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardSectionRoute: typeof AuthenticatedDashboardSectionRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
   AuthenticatedModelsSectionRoute: typeof AuthenticatedModelsSectionRoute
+  AuthenticatedTokenStatsSectionRoute: typeof AuthenticatedTokenStatsSectionRoute
   AuthenticatedUsageLogsSectionRoute: typeof AuthenticatedUsageLogsSectionRoute
   AuthenticatedChannelsIndexRoute: typeof AuthenticatedChannelsIndexRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
@@ -1209,6 +1250,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileIndexRoute: typeof AuthenticatedProfileIndexRoute
   AuthenticatedRedemptionCodesIndexRoute: typeof AuthenticatedRedemptionCodesIndexRoute
   AuthenticatedSubscriptionsIndexRoute: typeof AuthenticatedSubscriptionsIndexRoute
+  AuthenticatedTokenStatsIndexRoute: typeof AuthenticatedTokenStatsIndexRoute
   AuthenticatedUsageLogsIndexRoute: typeof AuthenticatedUsageLogsIndexRoute
   AuthenticatedUsersIndexRoute: typeof AuthenticatedUsersIndexRoute
   AuthenticatedWalletIndexRoute: typeof AuthenticatedWalletIndexRoute
@@ -1222,6 +1264,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardSectionRoute: AuthenticatedDashboardSectionRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
   AuthenticatedModelsSectionRoute: AuthenticatedModelsSectionRoute,
+  AuthenticatedTokenStatsSectionRoute: AuthenticatedTokenStatsSectionRoute,
   AuthenticatedUsageLogsSectionRoute: AuthenticatedUsageLogsSectionRoute,
   AuthenticatedChannelsIndexRoute: AuthenticatedChannelsIndexRoute,
   AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
@@ -1232,6 +1275,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedRedemptionCodesIndexRoute:
     AuthenticatedRedemptionCodesIndexRoute,
   AuthenticatedSubscriptionsIndexRoute: AuthenticatedSubscriptionsIndexRoute,
+  AuthenticatedTokenStatsIndexRoute: AuthenticatedTokenStatsIndexRoute,
   AuthenticatedUsageLogsIndexRoute: AuthenticatedUsageLogsIndexRoute,
   AuthenticatedUsersIndexRoute: AuthenticatedUsersIndexRoute,
   AuthenticatedWalletIndexRoute: AuthenticatedWalletIndexRoute,

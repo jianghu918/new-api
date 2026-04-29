@@ -25,6 +25,66 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// extractUserPrompt extracts user prompt content from messages for logging
+func extractUserPrompt(request dto.Request) string {
+	if request == nil {
+		return ""
+	}
+	
+	// Try to get messages via type assertion
+	var messages []dto.Message
+	if r, ok := request.(*dto.GeneralOpenAIRequest); ok {
+		messages = r.Messages
+	} else {
+		return ""
+	}
+	
+	if len(messages) == 0 {
+		return ""
+	}
+	
+	// Find the last user message
+	for i := len(messages) - 1; i >= 0; i-- {
+		if messages[i].Role == "user" {
+			content := messages[i].Content
+			if content == nil {
+				continue
+			}
+			
+			// Handle string content
+			if str, ok := content.(string); ok {
+				if len(str) > 500 {
+					return str[:500] + "..."
+				}
+				return str
+			}
+			
+			// Handle array content (multimodal)
+			if arr, ok := content.([]interface{}); ok {
+				var textParts []string
+				for _, item := range arr {
+					if m, ok := item.(map[string]interface{}); ok {
+						if m["type"] == "text" {
+							if text, ok := m["text"].(string); ok {
+								textParts = append(textParts, text)
+							}
+						}
+					}
+				}
+				if len(textParts) > 0 {
+					result := strings.Join(textParts, " ")
+					if len(result) > 500 {
+						return result[:500] + "..."
+					}
+					return result
+				}
+			}
+		}
+	}
+	
+	return ""
+}
+
 type TokenDetails struct {
 	TextTokens  int
 	AudioTokens int
@@ -206,8 +266,13 @@ func PostWssConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, mod
 	}
 
 	totalTokens := usage.TotalTokens
+	
+	// Extract user prompt from messages for logging (PostWssConsumeQuota)
+	userPrompt := extractUserPrompt(relayInfo.Request)
 	var logContent string
-	if !usePrice {
+	if userPrompt != "" {
+		logContent = userPrompt
+	} else if !usePrice {
 		logContent = fmt.Sprintf("模型倍率 %.2f，补全倍率 %.2f，音频倍率 %.2f，音频补全倍率 %.2f，分组倍率 %.2f",
 			modelRatio, completionRatio.InexactFloat64(), audioRatio.InexactFloat64(), audioCompletionRatio.InexactFloat64(), groupRatio)
 	} else {
@@ -327,8 +392,13 @@ func PostAudioConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, u
 	}
 
 	totalTokens := usage.TotalTokens
+	
+	// Extract user prompt from messages for logging (PostAudioConsumeQuota)
+	userPrompt := extractUserPrompt(relayInfo.Request)
 	var logContent string
-	if !usePrice {
+	if userPrompt != "" {
+		logContent = userPrompt
+	} else if !usePrice {
 		logContent = fmt.Sprintf("模型倍率 %.2f，补全倍率 %.2f，音频倍率 %.2f，音频补全倍率 %.2f，分组倍率 %.2f",
 			modelRatio, completionRatio.InexactFloat64(), audioRatio.InexactFloat64(), audioCompletionRatio.InexactFloat64(), groupRatio)
 	} else {

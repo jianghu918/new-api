@@ -964,8 +964,8 @@ export function DetailsDialog(props: DetailsDialogProps) {
                 </DetailSection>
               )}
 
-            {/* Content */}
-            {details && (
+            {/* Content - Only show user prompt to admin for consume logs */}
+            {props.isAdmin && isConsume && details && (
               <div className='space-y-1.5'>
                 <Label className='text-xs font-semibold'>{t('Content')}</Label>
                 <div className='bg-muted/30 relative rounded-md border p-2.5'>
