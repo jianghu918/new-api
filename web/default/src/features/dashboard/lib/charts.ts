@@ -24,6 +24,8 @@ import type {
   QuotaDataItem,
   ProcessedChartData,
   ProcessedUserChartData,
+  ProcessedTokenChartData,
+  TokenStatItem,
 } from '@/features/dashboard/types'
 
 type TFunction = (key: string) => string
@@ -987,6 +989,128 @@ export function processUserChartData(
       },
       point: { visible: false },
       color: { specified: userColorMap },
+      background: { fill: 'transparent' },
+      animation: true,
+    },
+  }
+}
+
+export function processTokenChartData(
+  data: TokenStatItem[],
+  t?: TFunction,
+  limit = 10
+): ProcessedTokenChartData {
+  const tt: TFunction = t ?? ((x) => x)
+
+  const emptyResult: ProcessedTokenChartData = {
+    spec_token_stacked: {
+      type: 'bar',
+      data: [{ id: 'tokenStackData', values: [] }],
+      xField: 'tokens',
+      yField: 'User',
+      seriesField: 'Type',
+      direction: 'horizontal',
+      stack: true,
+      title: {
+        visible: true,
+        text: tt('Token Consumption Ranking'),
+        subtext: tt('No data available'),
+      },
+      legends: { visible: true },
+      background: { fill: 'transparent' },
+    },
+  }
+
+  if (!data || data.length === 0) return emptyResult
+
+  const sorted = [...data]
+    .sort((a, b) => b.total_tokens - a.total_tokens)
+    .slice(0, limit)
+
+  const values = sorted.flatMap((item) => [
+    {
+      User: item.username || 'unknown',
+      Type: tt('Prompt Tokens'),
+      tokens: item.prompt_tokens || 0,
+    },
+    {
+      User: item.username || 'unknown',
+      Type: tt('Completion Tokens'),
+      tokens: item.completion_tokens || 0,
+    },
+  ])
+
+  const totalTokens = sorted.reduce((sum, item) => sum + (item.total_tokens || 0), 0)
+  const formatTokens = (v: number) =>
+    Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(v)
+
+  return {
+    spec_token_stacked: {
+      type: 'bar',
+      data: [{ id: 'tokenStackData', values }],
+      xField: 'tokens',
+      yField: 'User',
+      seriesField: 'Type',
+      direction: 'horizontal',
+      stack: true,
+      title: {
+        visible: true,
+        text: tt('Token Consumption Ranking'),
+        subtext: `${tt('Total:')} ${formatTokens(totalTokens)}`,
+      },
+      legends: { visible: true, orient: 'top' },
+      axes: [
+        { orient: 'left', type: 'band' },
+        { orient: 'bottom', type: 'linear', label: { formatMethod: (v: number) => formatTokens(v) } },
+      ],
+      bar: {
+        state: { hover: { stroke: '#000', lineWidth: 1 } },
+      },
+      label: {
+        visible: true,
+        position: 'inside',
+        formatMethod: (value: number) => formatTokens(value),
+        style: { fontSize: 11 },
+      },
+      tooltip: {
+        mark: {
+          content: [
+            {
+              key: (datum: Record<string, unknown>) => datum?.Type,
+              value: (datum: Record<string, unknown>) =>
+                formatTokens(Number(datum?.tokens) || 0),
+            },
+          ],
+        },
+        dimension: {
+          content: [
+            {
+              key: (datum: Record<string, unknown>) => datum?.Type,
+              value: (datum: Record<string, unknown>) =>
+                Number(datum?.tokens) || 0,
+            },
+          ],
+          updateContent: (
+            array: Array<{
+              key: string
+              value: string | number
+              datum?: Record<string, unknown>
+            }>
+          ) => {
+            let sum = 0
+            for (let i = 0; i < array.length; i++) {
+              const v = Number(array[i].datum?.tokens) || Number(array[i].value) || 0
+              sum += v
+              array[i].value = formatTokens(v)
+            }
+            array.unshift({
+              key: tt('Total:'),
+              value: formatTokens(sum),
+            })
+            return array
+          },
+        },
+      },
       background: { fill: 'transparent' },
       animation: true,
     },
