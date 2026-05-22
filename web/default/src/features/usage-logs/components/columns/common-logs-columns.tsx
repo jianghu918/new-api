@@ -801,9 +801,21 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
                   )}
                 </span>
               ) : log.content ? (
-                <span className='text-muted-foreground truncate group-hover:underline'>
-                  {log.content}
-                </span>
+                (() => {
+                  const MAX = 100
+                  const truncated =
+                    log.content.length > MAX
+                      ? log.content.slice(0, MAX) + '…'
+                      : log.content
+                  return (
+                    <span
+                      className='text-muted-foreground truncate group-hover:underline'
+                      title={log.content}
+                    >
+                      {truncated}
+                    </span>
+                  )
+                })()
               ) : (
                 <span className='text-muted-foreground/40'>—</span>
               )}
@@ -820,7 +832,29 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
       meta: { label: t('Details') },
       size: 180,
       maxSize: 200,
-    }
+    },
+    {
+      id: 'rawContent',
+      accessorKey: 'content',
+      header: t('Content'),
+      cell: ({ row }) => {
+        const log = row.original
+        const content = log.content ?? ''
+        const MAX = 100
+        const display =
+          content.length > MAX ? content.slice(0, MAX) + '…' : content
+        return (
+          <span
+            className='text-muted-foreground max-w-[200px] truncate text-xs'
+            title={content}
+          >
+            {display || '—'}
+          </span>
+        )
+      },
+      meta: { label: t('Content'), mobileHidden: true },
+      size: 160,
+    },
   )
 
   return columns
