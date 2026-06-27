@@ -1388,10 +1388,13 @@ func geminiStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http
 
 	if usage.CompletionTokens <= 0 {
 		if info.ReceivedResponseCount > 0 {
+			info.CompletionText = responseText.String()
 			usage = service.ResponseText2Usage(c, responseText.String(), info.UpstreamModelName, info.GetEstimatePromptTokens())
 		} else {
 			usage = &dto.Usage{}
 		}
+	} else {
+		info.CompletionText = responseText.String()
 	}
 
 	return usage, nil

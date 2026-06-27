@@ -94,6 +94,11 @@ func cozeChatHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Res
 	c.Writer.WriteHeader(resp.StatusCode)
 	_, _ = c.Writer.Write(jsonResponse)
 
+	if responseContent != nil {
+		var contentStr string
+		_ = json.Unmarshal(responseContent, &contentStr)
+		info.CompletionText = contentStr
+	}
 	return &usage, nil
 }
 
@@ -143,6 +148,7 @@ func cozeChatStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *ht
 	helper.Done(c)
 
 	if usage.TotalTokens == 0 {
+		info.CompletionText = responseText
 		usage = service.ResponseText2Usage(c, responseText, info.UpstreamModelName, c.GetInt("coze_input_count"))
 	}
 

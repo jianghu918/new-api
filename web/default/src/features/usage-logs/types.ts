@@ -218,6 +218,8 @@ export interface LogStatistics {
   quota: number
   rpm: number
   tpm: number
+  prompt_tokens: number
+  completion_tokens: number
 }
 
 // ============================================================================
@@ -289,6 +291,7 @@ export interface GetLogsParams {
   group?: string
   request_id?: string
   upstream_request_id?: string
+  include_content?: boolean
 }
 
 export interface GetLogsResponse {
@@ -361,6 +364,7 @@ export interface FetchLogsConfig {
   pageSize: number
   searchParams: Record<string, unknown>
   columnFilters: Array<{ id: string; value: unknown }>
+  includeContent?: boolean
 }
 
 // ============================================================================

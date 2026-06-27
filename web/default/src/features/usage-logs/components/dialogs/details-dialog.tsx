@@ -1199,6 +1199,32 @@ export function DetailsDialog(props: DetailsDialogProps) {
             </div>
           </div>
         )}
+
+        {/* Completion Content - Only for consume logs */}
+        {isConsume && props.log.completion_content && (
+          <div className='space-y-1.5'>
+            <Label className='text-xs font-semibold'>{t('Completion Content')}</Label>
+            <div className='bg-muted/30 relative min-w-0 overflow-hidden rounded-md border p-2.5'>
+              <Button
+                variant='ghost'
+                size='sm'
+                className='absolute top-1.5 right-1.5 h-5 w-5 p-0'
+                onClick={() => copyToClipboard(props.log.completion_content)}
+                title={t('Copy to clipboard')}
+                aria-label={t('Copy to clipboard')}
+              >
+                {copiedText === props.log.completion_content ? (
+                  <Check className='size-3 text-green-600' />
+                ) : (
+                  <Copy className='size-3' />
+                )}
+              </Button>
+              <p className='min-w-0 pr-6 text-xs leading-relaxed break-all whitespace-pre-wrap sm:wrap-break-word'>
+                {props.log.completion_content}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </Dialog>
   )

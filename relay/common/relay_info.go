@@ -170,6 +170,10 @@ type RelayInfo struct {
 
 	Request dto.Request
 
+	// CompletionText stores the model's response text for logging.
+	// Set by channel adaptors after processing the upstream response.
+	CompletionText string
+
 	// RequestConversionChain records request format conversions in order, e.g.
 	// ["openai", "openai_responses"] or ["openai", "claude"].
 	RequestConversionChain []types.RelayFormat

@@ -4,7 +4,7 @@ Copyright (C) 2023-2026 QuantumNous
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
 published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
+License, or at your option any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -32,7 +32,7 @@ const route = getRouteApi('/_authenticated/usage-logs/$section')
 
 function StatBadge(props: {
   label: string
-  value: string | number
+  value: React.ReactNode
   accent: string
 }) {
   return (
@@ -80,9 +80,13 @@ export function CommonLogsStats() {
         <Skeleton className='h-7 w-[150px] rounded-md' />
         <Skeleton className='h-7 w-[100px] rounded-md' />
         <Skeleton className='h-7 w-[120px] rounded-md' />
+        <Skeleton className='h-7 w-[140px] rounded-md' />
       </div>
     )
   }
+
+  const promptTokens = stats?.prompt_tokens || 0
+  const completionTokens = stats?.completion_tokens || 0
 
   return (
     <div className='flex flex-wrap items-center gap-2'>
@@ -90,6 +94,20 @@ export function CommonLogsStats() {
         label={t('Usage')}
         value={sensitiveVisible ? formatLogQuota(stats?.quota || 0) : '••••'}
         accent='bg-sky-500/70'
+      />
+      <StatBadge
+        label={t('Token Usage')}
+        value={
+          sensitiveVisible ? (
+            <>
+              {promptTokens.toLocaleString()} /{' '}
+              {completionTokens.toLocaleString()}
+            </>
+          ) : (
+            '••••'
+          )
+        }
+        accent='bg-emerald-500/65'
       />
       <StatBadge
         label={t('RPM')}

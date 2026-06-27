@@ -906,6 +906,7 @@ func ClaudeStreamHandler(c *gin.Context, resp *http.Response, info *relaycommon.
 	}
 
 	HandleStreamFinalResponse(c, info, claudeInfo)
+	info.CompletionText = claudeInfo.ResponseText.String()
 	return claudeInfo.Usage, nil
 }
 
@@ -950,6 +951,17 @@ func HandleClaudeResponseData(c *gin.Context, info *relaycommon.RelayInfo, claud
 	}
 
 	service.IOCopyBytesGracefully(c, httpResp, responseData)
+
+	// Capture completion text from response
+	var completionText string
+	for _, message := range claudeResponse.Content {
+		if message.Type == "text" {
+			completionText = message.GetText()
+			break
+		}
+	}
+	info.CompletionText = completionText
+
 	return nil
 }
 

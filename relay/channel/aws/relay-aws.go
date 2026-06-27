@@ -290,6 +290,7 @@ func awsStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, a *Adaptor) (
 	}
 
 	claude.HandleStreamFinalResponse(c, info, claudeInfo)
+	info.CompletionText = claudeInfo.ResponseText.String()
 	return nil, claudeInfo.Usage
 }
 
@@ -346,6 +347,7 @@ func handleNovaRequest(c *gin.Context, info *relaycommon.RelayInfo, a *Adaptor) 
 		},
 	}
 
+	info.CompletionText = novaResp.Output.Message.Content[0].Text
 	c.JSON(http.StatusOK, response)
 	return nil, &response.Usage
 }

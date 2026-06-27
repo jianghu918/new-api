@@ -398,6 +398,11 @@ func migrateClickHouseLogDB() error {
 	if err := LOG_DB.Exec(clickHouseLogCreateTableSQL(ttlDays)).Error; err != nil {
 		return err
 	}
+	// Add completion_content column for existing ClickHouse installations
+	if err := LOG_DB.Exec("ALTER TABLE logs ADD COLUMN IF NOT EXISTS completion_content String DEFAULT ''").Error; err != nil {
+		// Non-fatal: column may already exist or ClickHouse version may not support IF NOT EXISTS
+		common.SysLog("clickhouse migration: add completion_content column: " + err.Error())
+	}
 	return syncClickHouseLogTTL(ttlDays)
 }
 
@@ -432,6 +437,7 @@ CREATE TABLE IF NOT EXISTS logs (
 	created_at Int64 DEFAULT 0,
 	type Int32 DEFAULT 0,
 	content String DEFAULT '',
+	completion_content String DEFAULT '',
 	username String DEFAULT '',
 	token_name String DEFAULT '',
 	model_name String DEFAULT '',

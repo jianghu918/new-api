@@ -183,6 +183,7 @@ func OaiStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Re
 
 	HandleFinalResponse(c, info, lastStreamData, responseId, createAt, model, systemFingerprint, usage, containStreamUsage)
 
+	info.CompletionText = responseTextBuilder.String()
 	return usage, nil
 }
 
@@ -288,5 +289,8 @@ func OpenaiHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Respo
 
 	service.IOCopyBytesGracefully(c, resp, responseBody)
 
+	if len(simpleResponse.Choices) > 0 {
+		info.CompletionText = simpleResponse.Choices[0].Message.StringContent()
+	}
 	return &simpleResponse.Usage, nil
 }

@@ -68,6 +68,7 @@ func xAIStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Re
 	})
 
 	if !containStreamUsage {
+		info.CompletionText = responseTextBuilder.String()
 		usage = service.ResponseText2Usage(c, responseTextBuilder.String(), info.UpstreamModelName, info.GetEstimatePromptTokens())
 		usage.CompletionTokens += toolCount * 7
 	}
@@ -102,5 +103,8 @@ func xAIHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Response
 
 	service.IOCopyBytesGracefully(c, resp, encodeJson)
 
+	if len(xaiResponse.Choices) > 0 {
+		info.CompletionText = xaiResponse.Choices[0].Message.StringContent()
+	}
 	return xaiResponse.Usage, nil
 }

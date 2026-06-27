@@ -109,6 +109,22 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
     ],
   })
 
+  // Read column visibility from localStorage to determine if content columns should be included
+  const storageKey = getColumnVisibilityStorageKey(logCategory, isAdmin)
+  const storedVisibility = storageKey
+    ? (() => {
+        try {
+          const raw = window.localStorage.getItem(storageKey)
+          return raw ? JSON.parse(raw) : {}
+        } catch {
+          return {}
+        }
+      })()
+    : {}
+  const includeContent =
+    storedVisibility.completion_content !== false ||
+    storedVisibility.rawContent !== false
+
   const { data, isLoading, isFetching } = useQuery({
     queryKey: [
       'logs',
@@ -118,6 +134,7 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
       pagination.pageSize,
       columnFilters,
       searchParams,
+      includeContent,
       t,
     ],
     queryFn: async () => {
@@ -128,6 +145,7 @@ export function UsageLogsTable({ logCategory }: UsageLogsTableProps) {
         pageSize: pagination.pageSize,
         searchParams,
         columnFilters,
+        includeContent,
       })
 
       if (!result?.success) {

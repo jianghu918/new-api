@@ -130,6 +130,7 @@ func tencentStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *htt
 
 	service.CloseResponseBodyGracefully(resp)
 
+	info.CompletionText = responseText
 	return service.ResponseText2Usage(c, responseText, info.UpstreamModelName, info.GetEstimatePromptTokens()), nil
 }
 
@@ -158,6 +159,9 @@ func tencentHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Resp
 	c.Writer.Header().Set("Content-Type", "application/json")
 	c.Writer.WriteHeader(resp.StatusCode)
 	service.IOCopyBytesGracefully(c, resp, jsonResponse)
+	if len(fullTextResponse.Choices) > 0 {
+		info.CompletionText = fullTextResponse.Choices[0].Message.StringContent()
+	}
 	return &fullTextResponse.Usage, nil
 }
 

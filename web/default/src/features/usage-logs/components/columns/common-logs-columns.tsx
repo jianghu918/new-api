@@ -898,6 +898,44 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
       meta: { label: t('Content'), mobileHidden: true },
       size: 160,
     },
+    {
+      accessorKey: 'completion_content',
+      header: t('Completion Content'),
+      cell: function CompletionContentCell({ row }) {
+        const [dialogOpen, setDialogOpen] = useState(false)
+        const log = row.original
+        // Only show content for consume logs (type=2)
+        if (log.type !== 2) {
+          return <span className='text-muted-foreground/40 text-xs'>—</span>
+        }
+        const content = log.completion_content ?? ''
+        const MAX = 100
+        const display =
+          content.length > MAX ? content.slice(0, MAX) + '…' : content
+        return (
+          <>
+            <button
+              type='button'
+              className='group max-w-[200px] truncate text-left text-xs'
+              onClick={() => setDialogOpen(true)}
+              title={t('Click to view full details')}
+            >
+              <span className='text-muted-foreground group-hover:underline'>
+                {display || '—'}
+              </span>
+            </button>
+            <DetailsDialog
+              log={log}
+              isAdmin={isAdmin}
+              open={dialogOpen}
+              onOpenChange={setDialogOpen}
+            />
+          </>
+        )
+      },
+      meta: { label: t('Completion Content'), mobileHidden: true },
+      size: 160,
+    },
   )
 
   return columns
