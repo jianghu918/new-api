@@ -880,19 +880,32 @@ export function useCommonLogsColumns(isAdmin: boolean): ColumnDef<UsageLog>[] {
       id: 'rawContent',
       accessorKey: 'content',
       header: t('Content'),
-      cell: ({ row }) => {
+      cell: function ContentCell({ row }) {
+        const [dialogOpen, setDialogOpen] = useState(false)
         const log = row.original
         const content = log.content ?? ''
         const MAX = 100
         const display =
           content.length > MAX ? content.slice(0, MAX) + '…' : content
         return (
-          <span
-            className='text-muted-foreground max-w-[200px] truncate text-xs'
-            title={content}
-          >
-            {display || '—'}
-          </span>
+          <>
+            <button
+              type='button'
+              className='group max-w-[200px] truncate text-left text-xs'
+              onClick={() => setDialogOpen(true)}
+              title={t('Click to view full details')}
+            >
+              <span className='text-muted-foreground group-hover:underline'>
+                {display || '—'}
+              </span>
+            </button>
+            <DetailsDialog
+              log={log}
+              isAdmin={isAdmin}
+              open={dialogOpen}
+              onOpenChange={setDialogOpen}
+            />
+          </>
         )
       },
       meta: { label: t('Content'), mobileHidden: true },

@@ -37,6 +37,7 @@ type Log struct {
 	CreatedAt         int64  `json:"created_at" gorm:"bigint;index:idx_created_at_id,priority:1;index:idx_created_at_type"`
 	Type              int    `json:"type" gorm:"index:idx_created_at_type"`
 	Content           string `json:"content" gorm:"type:text"`
+	CompletionContent string `json:"completion_content" gorm:"type:text;default:''"`
 	Username          string `json:"username" gorm:"index;index:index_username_model_name,priority:2;default:''"`
 	TokenName         string `json:"token_name" gorm:"index;default:''"`
 	ModelName         string `json:"model_name" gorm:"index;index:index_username_model_name,priority:1;default:''"`
@@ -71,6 +72,15 @@ func ensureLogRequestId(log *Log) {
 	if log != nil && log.RequestId == "" {
 		log.RequestId = common.NewRequestId()
 	}
+}
+
+const maxContentChars = 64 * 1024 // 64KB max content storage
+
+func truncateContent(s string) string {
+	if len(s) <= maxContentChars {
+		return s
+	}
+	return s[:maxContentChars] + "\n...[truncated]"
 }
 
 func createLog(log *Log) error {
@@ -333,22 +343,30 @@ func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams)
 			needRecordIp = true
 		}
 	}
+	// Apply LogPromptContentEnabled gate: when disabled, clear content fields
+	logContent := truncateContent(params.Content)
+	logCompletionContent := truncateContent(params.CompletionContent)
+	if !common.LogPromptContentEnabled {
+		logContent = ""
+		logCompletionContent = ""
+	}
 	log := &Log{
-		UserId:           userId,
-		Username:         username,
-		CreatedAt:        createdAt,
-		Type:             LogTypeConsume,
-		Content:          params.Content,
-		PromptTokens:     params.PromptTokens,
-		CompletionTokens: params.CompletionTokens,
-		TokenName:        params.TokenName,
-		ModelName:        params.ModelName,
-		Quota:            params.Quota,
-		ChannelId:        params.ChannelId,
-		TokenId:          params.TokenId,
-		UseTime:          params.UseTimeSeconds,
-		IsStream:         params.IsStream,
-		Group:            params.Group,
+		UserId:            userId,
+		Username:          username,
+		CreatedAt:         createdAt,
+		Type:              LogTypeConsume,
+		Content:           logContent,
+		CompletionContent: logCompletionContent,
+		PromptTokens:      params.PromptTokens,
+		CompletionTokens:  params.CompletionTokens,
+		TokenName:         params.TokenName,
+		ModelName:         params.ModelName,
+		Quota:             params.Quota,
+		ChannelId:         params.ChannelId,
+		TokenId:           params.TokenId,
+		UseTime:           params.UseTimeSeconds,
+		IsStream:          params.IsStream,
+		Group:             params.Group,
 		Ip: func() string {
 			if needRecordIp {
 				return c.ClientIP()
@@ -599,7 +617,7 @@ type Stat struct {
 }
 
 func SumUsedQuota(logType int, startTimestamp int64, endTimestamp int64, modelName string, username string, tokenName string, channel int, group string) (stat Stat, err error) {
-	tx := LOG_DB.Table("logs").Select("COALESCE(sum(quota), 0) quota")
+	tx := LOG_DB.Table("logs").Select("COALESCE(sum(quota), 0) quota, COALESCE(sum(prompt_tokens), 0) prompt_tokens, COALESCE(sum(completion_tokens), 0) completion_tokens")
 
 	// 为rpm和tpm创建单独的查询
 	rpmTpmQuery := LOG_DB.Table("logs").Select("count(*) rpm, COALESCE(sum(prompt_tokens), 0) + COALESCE(sum(completion_tokens), 0) tpm")
