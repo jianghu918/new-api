@@ -25,6 +25,99 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type UserQuotaBatch struct {
+	Ids   []int  `json:"ids"`
+	Mode  string `json:"mode"`
+	Value int    `json:"value"`
+}
+
+// BatchManageUserQuota batch adjust quota for multiple users
+func BatchManageUserQuota(c *gin.Context) {
+	var req UserQuotaBatch
+	if err := common.DecodeJson(c.Request.Body, &req); err != nil || len(req.Ids) == 0 {
+		common.ApiErrorI18n(c, i18n.MsgInvalidParams)
+		return
+	}
+	if len(req.Ids) > 100 {
+		common.ApiErrorI18n(c, i18n.MsgBatchTooMany, map[string]any{"Max": 100})
+		return
+	}
+	if req.Value <= 0 && req.Mode != "override" {
+		common.ApiErrorI18n(c, i18n.MsgUserQuotaChangeZero)
+		return
+	}
+
+	myRole := c.GetInt("role")
+	successCount := 0
+	var failedIds []int
+
+	for _, id := range req.Ids {
+		user := model.User{Id: id}
+		model.DB.Unscoped().Where(&user).First(&user)
+		if user.Id == 0 {
+			failedIds = append(failedIds, id)
+			continue
+		}
+		if !canManageTargetRole(myRole, user.Role) {
+			failedIds = append(failedIds, id)
+			continue
+		}
+
+		var err error
+		switch req.Mode {
+		case "add":
+			err = model.IncreaseUserQuota(user.Id, req.Value, true)
+			if err == nil {
+				recordManageAuditFor(c, user.Id, "user.quota_add", map[string]interface{}{
+					"quota": logger.LogQuota(req.Value),
+				})
+			}
+		case "subtract":
+			err = model.DecreaseUserQuota(user.Id, req.Value, true)
+			if err == nil {
+				recordManageAuditFor(c, user.Id, "user.quota_subtract", map[string]interface{}{
+					"quota": logger.LogQuota(req.Value),
+				})
+			}
+		case "override":
+			oldQuota := user.Quota
+			err = model.DB.Model(&model.User{}).Where("id = ?", user.Id).Update("quota", req.Value).Error
+			if err == nil {
+				recordManageAuditFor(c, user.Id, "user.quota_override", map[string]interface{}{
+					"from": logger.LogQuota(oldQuota),
+					"to":   logger.LogQuota(req.Value),
+				})
+			}
+		default:
+			common.ApiErrorI18n(c, i18n.MsgInvalidParams)
+			return
+		}
+
+		if err != nil {
+			failedIds = append(failedIds, id)
+			continue
+		}
+		successCount++
+	}
+
+	if successCount == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "No users were updated",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "",
+		"data": gin.H{
+			"success_count": successCount,
+			"failed_ids":    failedIds,
+		},
+	})
+}
+
 type LoginRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`

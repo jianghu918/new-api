@@ -25,6 +25,7 @@ import type {
   UserFormData,
   ManageUserAction,
   ManageUserQuotaPayload,
+  BatchManageUserQuotaPayload,
   ApiResponse,
 } from './types'
 
@@ -122,6 +123,16 @@ export async function adjustUserQuota(
   payload: ManageUserQuotaPayload
 ): Promise<ApiResponse<Partial<User>>> {
   const res = await api.post('/api/user/manage', payload)
+  return res.data
+}
+
+/**
+ * Batch adjust quota for multiple users (add/subtract/override)
+ */
+export async function batchAdjustUserQuota(
+  payload: BatchManageUserQuotaPayload
+): Promise<ApiResponse> {
+  const res = await api.post('/api/user/batch/manage', payload)
   return res.data
 }
 

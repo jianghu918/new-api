@@ -49,7 +49,7 @@ function isDisabledUserRow(user: User) {
 export function UsersTable() {
   const { t } = useTranslation()
   const columns = useUsersColumns()
-  const { refreshTrigger } = useUsers()
+  const { refreshTrigger, triggerRefresh } = useUsers()
   const isMobile = useMediaQuery('(max-width: 640px)')
 
   const {
@@ -197,7 +197,7 @@ export function UsersTable() {
             : DISABLED_ROW_DESKTOP
           : undefined
       }
-      bulkActions={<DataTableBulkActions table={table} />}
+      bulkActions={<DataTableBulkActions table={table} onSuccess={triggerRefresh} />}
     />
   )
 }

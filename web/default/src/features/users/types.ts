@@ -125,6 +125,12 @@ export interface ManageUserQuotaPayload {
   value: number
 }
 
+export interface BatchManageUserQuotaPayload {
+  ids: number[]
+  mode: QuotaAdjustMode
+  value: number
+}
+
 // ============================================================================
 // Dialog Types
 // ============================================================================
